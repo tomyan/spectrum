@@ -5,7 +5,7 @@
  * @author Thomas Yandell
  */
 
-pkg.define('spectrum', function () {
+pkg.define('spectrum', ['node:sys'], function (sys) {
     var ns  = {},
         ast = ns.ast = {};
 
@@ -140,8 +140,23 @@ pkg.define('spectrum', function () {
             }
         }
         catch (e) {
-            // TODO
-            throw e;
+            var lineRegex = /[^\n\r\f]*?(?:\015\012|\012|\015)/g;
+            var beginningOfErrorLine = 0;
+            lineRegex.lastIndex = 0;
+            var line = 1;
+            while (lineRegex.exec(content)) {
+                if (lineRegex.lastIndex <= tokenStart) {
+                    line++;
+                    beginningOfErrorLine = lineRegex.lastIndex;
+                }
+                else {
+                    break;
+                }
+            }
+            //line += this.lineOffset;
+            var character = tokenStart - beginningOfErrorLine;
+            character++; // make it 1 based
+            throw e + " at line " + line + ", character " + character;
         }
 
         return template;

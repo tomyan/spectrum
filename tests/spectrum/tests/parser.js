@@ -39,7 +39,7 @@ pkg.define('spectrum_tests_parser', ['litmus', 'spectrum'], function (litmus, sp
             function () {
                 parser.parse(
                     "\n" +
-                    "   <( )>\n"
+                    "   <= =>\n"
                 );
             },
             /empty expression tag.+at line 2, character 4/,
