@@ -1,0 +1,3 @@
+[submodule "ext/litmus.js"]
+	path = ext/litmus.js
+	url = git://github.com/bbc-frameworks/litmus.js.git

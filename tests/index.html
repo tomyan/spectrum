@@ -1,0 +1,20 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-GB" xml:lang="en-GB">
+  <head>
+    <title>Spectrum Tests</title>
+    <meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+    <script type="text/javascript" src="../ext/litmus.js/ext/pkg.js/src/pkg.js"></script>
+    <script type="text/javascript">
+      pkg.lib('../ext/litmus.js/src', 'litmus');
+      pkg.lib('.', 'spectrum_tests');
+      pkg.lib('../src', 'spectrum');
+      pkg.load(['spectrum_tests_suite', 'litmus_browser'], function (suite, litmus) {
+          litmus.runStatic(suite);
+      });
+    </script>
+    <link rel="stylesheet" type="text/css" href="../../litmus/src/style.css" media="screen,print"/>
+  </head>
+  <body>
+  </body>
+</html>
