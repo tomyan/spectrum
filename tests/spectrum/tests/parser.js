@@ -50,15 +50,14 @@ pkg.define('spectrum_tests_parser', ['litmus', 'spectrum'], function (litmus, sp
 
         ast = parser.parse("<~js> any old code </~js>");
         this.is(ast.subnodes.length, 1, 'single code tag returns one node');
-        this.isa(ast.subnodes[0], spectrum.ast.CodeTag, 'got single code tag');
+        this.isa(ast.subnodes[0], spectrum.ast.CodeBlock, 'got single code tag');
         this.is(ast.subnodes[0].code, ' any old code ', 'contents of code tag');
-
 
         ast = parser.parse("<~js>code1</~js><~js>code2</~js>");
         this.is(ast.subnodes.length, 1, 'adjacent code tags do run together');
-        this.isa(ast.subnodes[0], spectrum.ast.CodeTag, 'ran together code tag type');
+        this.isa(ast.subnodes[0], spectrum.ast.CodeBlock, 'ran together code tag type');
         this.is(ast.subnodes[0].code, 'code1code2', 'ran together code tag code');
 
-    
+        
     });
 });

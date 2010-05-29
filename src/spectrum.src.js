@@ -31,8 +31,16 @@ pkg.define('spectrum', ['node:sys'], function (sys) {
         child.base = parent;
     }
 
+    var ParseError = function (message) {
+        this.message = message;
+    };
+
     ast.Container = function () {
         this.subnodes = [];
+    };
+
+    ast.Container.prototype.lastSubnode = function () {
+        return this.subnodes[this.subnodes.length - 1];
     };
 
     ast.Template = function () {
@@ -49,11 +57,16 @@ pkg.define('spectrum', ['node:sys'], function (sys) {
         this.code = code;
     };
 
+    ast.CodeBlock = function (code) {
+        this.code = code;
+    };
+
     // contexts
     var i = 0,
         topLevelContext      = i++,
         endOfInputContext    = i++,
-        expressionTagContext = i++;
+        expressionTagContext = i++,
+        codeBlockContext     = i++;
     delete i;
 
     // rules - these are converted into RegExps but removing comments and whitespace,
@@ -63,12 +76,17 @@ pkg.define('spectrum', ['node:sys'], function (sys) {
             ([\S\s]*?)   // content
             (?:          // any of...
                 (<)=         // the start of an expression tag
+            |   (<)~js>      // the start of a code block
             |   $            // end of the string
             )
         }x,
         expressionTagRule = rule{
             ([\S\s]*?)   // the expression
             =>           // the closing tag
+        }x,
+        codeBlockRule = rule{
+            ([\S\s]*?)   // the code
+            </~js>       // the closing tag            
         }x;
 
     var Parser = ns.Parser = function () {};
@@ -91,7 +109,7 @@ pkg.define('spectrum', ['node:sys'], function (sys) {
                         topLevelRule.lastIndex = position;
                         res = topLevelRule.exec(content);
                         if (res == null) {
-                            throw new Error('could not match template');
+                            throw new ParseError('could not match template');
                         }
                         newPosition = topLevelRule.lastIndex;
 
@@ -101,6 +119,10 @@ pkg.define('spectrum', ['node:sys'], function (sys) {
                         if (res[2]) { // expression tag start
                             tokenStart = newPosition - 2;
                             context = expressionTagContext;
+                        }
+                        else if (res[3]) { // code block start
+                            tokenStart = newPosition - 5;
+                            context = codeBlockContext;
                         }
                         else {
                             context = endOfInputContext;
@@ -113,14 +135,32 @@ pkg.define('spectrum', ['node:sys'], function (sys) {
                         expressionTagRule.lastIndex = position;
                         res = expressionTagRule.exec(content);
                         if (res == null) {
-                            throw new Error('cannot find end of expression tag "=>"');
+                            throw new ParseError('cannot find end of expression tag "=>"');
                         }
                         newPosition = expressionTagRule.lastIndex;
                         if (res[1].search(/\S/) === -1) {
-                            throw new Error("empty expression tag");
+                            throw new ParseError("empty expression tag");
                         }
                         stack[stack.length - 1].subnodes.push(new ast.ExpressionTag(res[1]));
                         // TODO return to suitable context for current container
+                        context = topLevelContext;
+                        break;
+
+                    case codeBlockContext:
+                        codeBlockRule.lastIndex = position;
+                        res = codeBlockRule.exec(content);
+                        if (res === null) {
+                            throw new ParseError('cannot find end of code tag "</~js>"');
+                        }
+                        newPosition = codeBlockRule.lastIndex;
+
+                        var lastSubnode = stack[stack.length - 1].lastSubnode();
+                        if (lastSubnode && (lastSubnode instanceof ast.CodeBlock)) {
+                            lastSubnode.code += res[1];
+                        }
+                        else {
+                            stack[stack.length - 1].subnodes.push(new ast.CodeBlock(res[1]));
+                        }
                         context = topLevelContext;
                         break;
 
@@ -140,23 +180,28 @@ pkg.define('spectrum', ['node:sys'], function (sys) {
             }
         }
         catch (e) {
-            var lineRegex = /[^\n\r\f]*?(?:\015\012|\012|\015)/g;
-            var beginningOfErrorLine = 0;
-            lineRegex.lastIndex = 0;
-            var line = 1;
-            while (lineRegex.exec(content)) {
-                if (lineRegex.lastIndex <= tokenStart) {
-                    line++;
-                    beginningOfErrorLine = lineRegex.lastIndex;
+            if (e instanceof ParseError) {
+                var lineRegex = /[^\n\r\f]*?(?:\015\012|\012|\015)/g;
+                var beginningOfErrorLine = 0;
+                lineRegex.lastIndex = 0;
+                var line = 1;
+                while (lineRegex.exec(content)) {
+                    if (lineRegex.lastIndex <= tokenStart) {
+                        line++;
+                        beginningOfErrorLine = lineRegex.lastIndex;
+                    }
+                    else {
+                        break;
+                    }
                 }
-                else {
-                    break;
-                }
+                //line += this.lineOffset;
+                var character = tokenStart - beginningOfErrorLine;
+                character++; // make it 1 based
+                throw e.message + " at line " + line + ", character " + character;
             }
-            //line += this.lineOffset;
-            var character = tokenStart - beginningOfErrorLine;
-            character++; // make it 1 based
-            throw e + " at line " + line + ", character " + character;
+            else {
+                throw e;
+            }
         }
 
         return template;
