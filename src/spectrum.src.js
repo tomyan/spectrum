@@ -84,7 +84,9 @@ pkg.define('spectrum', function () {
                         }
                         newPosition = topLevelRule.lastIndex;
 
-                        stack[stack.length - 1].subnodes.push(new ast.Content(res[1]));
+                        if (res[1].length > 0) {
+                            stack[stack.length - 1].subnodes.push(new ast.Content(res[1]));
+                        }
 
                         context = endOfInputContext;
                         break;
@@ -99,7 +101,7 @@ pkg.define('spectrum', function () {
                         break SUCCESS;
 
                     default:
-                        throw 'unknown parse context: \'' + context + '\'';
+                        throw new Error('unknown parse context: \'' + context + '\'');
 
                 }
             }
