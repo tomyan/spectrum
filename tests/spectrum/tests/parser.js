@@ -1,7 +1,7 @@
 
 pkg.define('spectrum_tests_parser', ['litmus', 'spectrum'], function (litmus, spectrum) {
     return new litmus.Test('spectrum parser', function () {
-        this.plan(14);
+        this.plan(15);
 
         this.ok(spectrum.Parser, 'load the spectrum parser');
 
@@ -23,16 +23,27 @@ pkg.define('spectrum_tests_parser', ['litmus', 'spectrum'], function (litmus, sp
 
         // expression tags
 
-       ast = parser.parse("<= an\nexpression =>");
-       this.is(ast.subnodes.length, 1, 'single expression tag returns one node');
-       this.isa(ast.subnodes[0], spectrum.ast.ExpressionTag, 'got single expression tag');
-       this.is(ast.subnodes[0].code, ' an\nexpression ', 'contents of expression tag');
+        ast = parser.parse("<= an\nexpression =>");
+        this.is(ast.subnodes.length, 1, 'single expression tag returns one node');
+        this.isa(ast.subnodes[0], spectrum.ast.ExpressionTag, 'got single expression tag');
+        this.is(ast.subnodes[0].code, ' an\nexpression ', 'contents of expression tag');
 
-       ast = parser.parse("<=exp1=><=exp2=>");
-       this.is(ast.subnodes.length, 2, 'adjacent expression tags do not run together');
-       this.isa(ast.subnodes[0], spectrum.ast.ExpressionTag, 'first adjacent expression tag type');
-       this.is(ast.subnodes[0].code, 'exp1', 'first adjacent expression tag code');
-       this.isa(ast.subnodes[1], spectrum.ast.ExpressionTag, 'second adjacent expression tag type');
-       this.is(ast.subnodes[1].code, 'exp2', 'second adjacent expression tag code');
+        ast = parser.parse("<=exp1=><=exp2=>");
+        this.is(ast.subnodes.length, 2, 'adjacent expression tags do not run together');
+        this.isa(ast.subnodes[0], spectrum.ast.ExpressionTag, 'first adjacent expression tag type');
+        this.is(ast.subnodes[0].code, 'exp1', 'first adjacent expression tag code');
+        this.isa(ast.subnodes[1], spectrum.ast.ExpressionTag, 'second adjacent expression tag type');
+        this.is(ast.subnodes[1].code, 'exp2', 'second adjacent expression tag code');
+
+        this.throwsOk(
+            function () {
+                parser.parse(
+                    "\n" +
+                    "   <( )>\n"
+                );
+            },
+            /empty expression tag.+at line 2, character 4/,
+            'catch empty expression tag error at right place on template'
+        );
     });
 });
