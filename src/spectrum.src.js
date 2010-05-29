@@ -41,13 +41,14 @@ pkg.define('spectrum', function () {
 
     extend(ast.Template, ast.Container);
 
-    ast.Content = function () {
-
+    ast.Content = function (text) {
+        this.text = text;
     };
 
     // contexts
     var i = 0,
-        topLevelContext = i++;
+        topLevelContext   = i++,
+        endOfInputContext = i++;
 
     // rules
     var topLevelRule = m{
@@ -66,8 +67,47 @@ pkg.define('spectrum', function () {
             context  = topLevelContext,
             position,
             newPosition,
+            res,
             tokenStart = 0,
             stack = [template];
+
+        try {
+            SUCCESS: while (true) {
+                position = newPosition || 0;
+                switch (context) {
+
+                    case topLevelContext:
+                        topLevelRule.lastIndex = position;
+                        res = topLevelRule.exec(content);
+                        if (res == null) {
+                            throw new Error('could not match template');
+                        }
+                        newPosition = topLevelRule.lastIndex;
+
+                        stack[stack.length - 1].subnodes.push(new ast.Content(res[1]));
+
+                        context = endOfInputContext;
+                        break;
+
+                    case endOfInputContext:
+                        if (! stack.shift()) {
+                            throw new Error('no template on container stack');
+                        }
+                        if (stack.length > 0) {
+                            throw new Error('TODO error message with containers not closed');
+                        }
+                        break SUCCESS;
+
+                    default:
+                        throw 'unknown parse context: \'' + context + '\'';
+
+                }
+            }
+        }
+        catch (e) {
+            // TODO
+            throw e;
+        }
 
         return template;
     };
