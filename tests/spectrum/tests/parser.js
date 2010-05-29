@@ -1,7 +1,7 @@
 
 pkg.define('spectrum_tests_parser', ['litmus', 'spectrum'], function (litmus, spectrum) {
     return new litmus.Test('spectrum parser', function () {
-        this.plan(15);
+        this.plan(21);
 
         this.ok(spectrum.Parser, 'load the spectrum parser');
 
@@ -45,5 +45,20 @@ pkg.define('spectrum_tests_parser', ['litmus', 'spectrum'], function (litmus, sp
             /empty expression tag.+at line 2, character 4/,
             'catch empty expression tag error at right place on template'
         );
+
+        // code blocks
+
+        ast = parser.parse("<~js> any old code </~js>");
+        this.is(ast.subnodes.length, 1, 'single code tag returns one node');
+        this.isa(ast.subnodes[0], spectrum.ast.CodeTag, 'got single code tag');
+        this.is(ast.subnodes[0].code, ' any old code ', 'contents of code tag');
+
+
+        ast = parser.parse("<~js>code1</~js><~js>code2</~js>");
+        this.is(ast.subnodes.length, 1, 'adjacent code tags do run together');
+        this.isa(ast.subnodes[0], spectrum.ast.CodeTag, 'ran together code tag type');
+        this.is(ast.subnodes[0].code, 'code1code2', 'ran together code tag code');
+
+    
     });
 });
