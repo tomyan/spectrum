@@ -56,7 +56,9 @@ pkg.define('spectrum', function () {
         expressionTagContext = i++;
     delete i;
 
-    // rules
+    // rules - these are converted into RegExps but removing comments and whitespace,
+    // escaping forward slashes and adding the "g" modifier - see the Makefile
+    // for example rule{ hello }x is converted to /hello/g
     var topLevelRule = rule{
             ([\S\s]*?)   // content
             (?:          // any of...
