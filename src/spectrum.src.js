@@ -45,22 +45,31 @@ pkg.define('spectrum', function () {
         this.text = text;
     };
 
+    ast.ExpressionTag = function (code) {
+        this.code = code;
+    };
+
     // contexts
     var i = 0,
-        topLevelContext   = i++,
-        endOfInputContext = i++;
+        topLevelContext      = i++,
+        endOfInputContext    = i++,
+        expressionTagContext = i++;
+    delete i;
 
     // rules
-    var topLevelRule = m{
-            ([\S\s]*?)  # content
-            (?:
-                $       # end of the string
+    var topLevelRule = rule{
+            ([\S\s]*?)   // content
+            (?:          // any of...
+                (<)=         // the start of an expression tag
+            |   $            // end of the string
             )
+        }x,
+        expressionTagRule = rule{
+            ([\S\s]*?)   // the expression
+            =>           // the closing tag
         }x;
 
-    var Parser = ns.Parser = function () {
-
-    };
+    var Parser = ns.Parser = function () {};
 
     Parser.prototype.parse = function (content) {
         var template = new ast.Template(),
@@ -87,8 +96,30 @@ pkg.define('spectrum', function () {
                         if (res[1].length > 0) {
                             stack[stack.length - 1].subnodes.push(new ast.Content(res[1]));
                         }
+                        if (res[2]) { // expression tag start
+                            tokenStart = newPosition - 2;
+                            context = expressionTagContext;
+                        }
+                        else {
+                            context = endOfInputContext;
+                        }
 
-                        context = endOfInputContext;
+                        break;
+
+                    case expressionTagContext:
+                        // TODO escaping of value resulting from expression
+                        expressionTagRule.lastIndex = position;
+                        res = expressionTagRule.exec(content);
+                        if (res == null) {
+                            throw new Error('cannot find end of expression tag "=>"');
+                        }
+                        newPosition = expressionTagRule.lastIndex;
+                        if (res[1].search(/\S/) === -1) {
+                            throw new Error("empty expression tag");
+                        }
+                        stack[stack.length - 1].subnodes.push(new ast.ExpressionTag(res[1]));
+                        // TODO return to suitable context for current container
+                        context = topLevelContext;
                         break;
 
                     case endOfInputContext:
