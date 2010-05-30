@@ -74,16 +74,15 @@ pkg.define('spectrum', function () {
         codeLinesContext     = i++;
     delete i;
 
-    // rules - these are converted into RegExps but removing comments and whitespace
-    // (apart from spaces in the beginning of a character class), escaping forward slashes
-    // and adding the "g" modifier - see the Makefile
-    // for example rule{ hello [ ] }x is converted to /hello[ ]/g
+    // rules - these are converted into RegExps but removing comments and whitespace, escaping forward slashes,
+    // adding \h for horizontal whitespace ([ \t]) and adding the "g" modifier - see the Makefile
+    // for example rule{ hello \h* }x is converted to /hello[ \t]*/g
     var topLevelRule = rule{
             ([\S\s]*?)   // content
             (?:          // any of...
                 (<)=             // the start of an expression tag
             |   (<)~js>          // the start of a code block
-            |   (\n|^)[ \t]*(:)  // the beginning of a code line       
+            |   (\n|^)\h*(:)  // the beginning of a code line       
             |   $                // end of the string
             )
         }x,
@@ -97,7 +96,7 @@ pkg.define('spectrum', function () {
         }x,
         codeLineRule = rule{
             (.*?(?:\n|$))    // the rest of the line (including trailing newline)
-            ([ \t]*:)?     // possibly the start of another code line
+            (\h*:)?     // possibly the start of another code line
         }x;
 
     var Parser = ns.Parser = function () {};
