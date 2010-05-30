@@ -5,7 +5,7 @@
  * @author Thomas Yandell
  */
 
-pkg.define('spectrum', ['node:sys'], function (sys) {
+pkg.define('spectrum', function () {
     var ns  = {},
         ast = ns.ast = {};
 
@@ -61,23 +61,30 @@ pkg.define('spectrum', ['node:sys'], function (sys) {
         this.code = code;
     };
 
+    ast.CodeLines = function (code) {
+        this.code = code;
+    };    
+
     // contexts
     var i = 0,
         topLevelContext      = i++,
         endOfInputContext    = i++,
         expressionTagContext = i++,
-        codeBlockContext     = i++;
+        codeBlockContext     = i++,
+        codeLinesContext     = i++;
     delete i;
 
-    // rules - these are converted into RegExps but removing comments and whitespace,
-    // escaping forward slashes and adding the "g" modifier - see the Makefile
-    // for example rule{ hello }x is converted to /hello/g
+    // rules - these are converted into RegExps but removing comments and whitespace
+    // (apart from spaces in the beginning of a character class), escaping forward slashes
+    // and adding the "g" modifier - see the Makefile
+    // for example rule{ hello [ ] }x is converted to /hello[ ]/g
     var topLevelRule = rule{
             ([\S\s]*?)   // content
             (?:          // any of...
-                (<)=         // the start of an expression tag
-            |   (<)~js>      // the start of a code block
-            |   $            // end of the string
+                (<)=             // the start of an expression tag
+            |   (<)~js>          // the start of a code block
+            |   (\n|^)[ \t]*(:)  // the beginning of a code line       
+            |   $                // end of the string
             )
         }x,
         expressionTagRule = rule{
@@ -87,6 +94,10 @@ pkg.define('spectrum', ['node:sys'], function (sys) {
         codeBlockRule = rule{
             ([\S\s]*?)   // the code
             </~js>       // the closing tag            
+        }x,
+        codeLineRule = rule{
+            (.*?(?:\n|$))    // the rest of the line (including trailing newline)
+            ([ \t]*:)?     // possibly the start of another code line
         }x;
 
     var Parser = ns.Parser = function () {};
@@ -113,8 +124,8 @@ pkg.define('spectrum', ['node:sys'], function (sys) {
                         }
                         newPosition = topLevelRule.lastIndex;
 
-                        if (res[1].length > 0) {
-                            stack[stack.length - 1].subnodes.push(new ast.Content(res[1]));
+                        if (res[1].length > 0 || res[4] && res[4].length > 0) {
+                                stack[stack.length - 1].subnodes.push(new ast.Content(res[1] + (res[4] ? res[4] : '')));
                         }
                         if (res[2]) { // expression tag start
                             tokenStart = newPosition - 2;
@@ -123,6 +134,10 @@ pkg.define('spectrum', ['node:sys'], function (sys) {
                         else if (res[3]) { // code block start
                             tokenStart = newPosition - 5;
                             context = codeBlockContext;
+                        }
+                        else if (res[5]) { // code line start
+                            tokenStart = newPosition - 1;
+                            context = codeLinesContext;                            
                         }
                         else {
                             context = endOfInputContext;
@@ -142,7 +157,7 @@ pkg.define('spectrum', ['node:sys'], function (sys) {
                             throw new ParseError("empty expression tag");
                         }
                         stack[stack.length - 1].subnodes.push(new ast.ExpressionTag(res[1]));
-                        // TODO return to suitable context for current container
+                        // TODO return to suitable context for current container (maybe not needed if topLevelContext can handle being in a container)
                         context = topLevelContext;
                         break;
 
@@ -161,6 +176,30 @@ pkg.define('spectrum', ['node:sys'], function (sys) {
                         else {
                             stack[stack.length - 1].subnodes.push(new ast.CodeBlock(res[1]));
                         }
+                        context = topLevelContext;
+                        break;
+
+                    case codeLinesContext:
+                        codeLineRule.lastIndex = position;
+                        res = codeLineRule.exec(content);
+                        if (res === null) {
+                            throw new ParseError('cannot parse code line');
+                        }
+                        newPosition = codeLineRule.lastIndex;
+                        
+                        var lastSubnode = stack[stack.length - 1].lastSubnode();
+                        if (lastSubnode && (lastSubnode instanceof ast.CodeLines)) {
+                            lastSubnode.code += res[1];
+                        }
+                        else {
+                            stack[stack.length - 1].subnodes.push(new ast.CodeLines(res[1]));
+                        }
+
+                        if (res[2]) { // if we have the start of a continuing code line
+                            tokenStart--;
+                            break;
+                        }
+
                         context = topLevelContext;
                         break;
 
