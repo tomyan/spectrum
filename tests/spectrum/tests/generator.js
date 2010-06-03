@@ -1,7 +1,7 @@
 
-pkg.define('spectrum_tests_generator', ['litmus', 'spectrum', 'node:sys'], function (litmus, spectrum, sys) {
+pkg.define('spectrum_tests_generator', ['litmus', 'spectrum'], function (litmus, spectrum) {
     return new litmus.Test('spectrum parser', function () {
-        this.plan(1);
+        this.plan(2);
 
         var parser = new spectrum.Parser();
     
@@ -9,7 +9,6 @@ pkg.define('spectrum_tests_generator', ['litmus', 'spectrum', 'node:sys'], funct
         function testOutput (content, expected, message) {
             var template = parser.templateForContent(content),
                 view     = template.createInstance();
-            sys.debug(sys.inspect(view.prototype));
             test.is(view.render(), expected, message);
         }
     
@@ -17,6 +16,12 @@ pkg.define('spectrum_tests_generator', ['litmus', 'spectrum', 'node:sys'], funct
             'Hello World!\n',
             'Hello World!\n',
             'simple content'
+        );
+
+        testOutput(
+            '1 + 1 = <= 1 + 1 =>!',
+            '1 + 1 = 2!',
+            'expression tag generates output'
         );
     });
 });
