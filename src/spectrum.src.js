@@ -22,7 +22,7 @@
         return code;
     }
 
-    pkg.define('spectrum', ['node:sys'], function (sys) {
+    pkg.define('spectrum', ['node:sys', 'fs-promise'], function (sys, fs) {
         var ns  = {},
             ast = ns.ast = {};
 
@@ -442,6 +442,18 @@
             }
 
             return root;
+        };
+
+        ns.Processor = function (root) {
+            this.root   = root;
+            this.parser = new Parser();
+        };
+
+        ns.Processor.prototype.loadTemplate = function (path) {
+            var parser = this.parser;
+            return fs.readFile(this.root + path).then(function (content) {
+                return parser.templateForContent(content);
+            });
         };
 
         return ns;

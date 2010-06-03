@@ -1,6 +1,6 @@
 
 pkg.define('spectrum_tests_generator', ['litmus', 'spectrum'], function (litmus, spectrum) {
-    return new litmus.Test('spectrum parser', function () {
+    return new litmus.Test('spectrum generator', function () {
         this.plan(6);
 
         var parser = new spectrum.Parser();
