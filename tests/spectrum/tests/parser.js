@@ -23,12 +23,12 @@ pkg.define('spectrum_tests_parser', ['litmus', 'spectrum'], function (litmus, sp
 
         // expression tags
 
-        ast = parser.parse("<= an\nexpression =>");
+        ast = parser.parse("<%= an\nexpression %>");
         this.is(ast.subnodes.length, 1, 'single expression tag returns one node');
         this.isa(ast.subnodes[0], spectrum.ast.ExpressionTag, 'got single expression tag');
         this.is(ast.subnodes[0].code, ' an\nexpression ', 'contents of expression tag');
 
-        ast = parser.parse("<=exp1=><=exp2=>");
+        ast = parser.parse("<%=exp1%><%=exp2%>");
         this.is(ast.subnodes.length, 2, 'adjacent expression tags do not run together');
         this.isa(ast.subnodes[0], spectrum.ast.ExpressionTag, 'first adjacent expression tag type');
         this.is(ast.subnodes[0].code, 'exp1', 'first adjacent expression tag code');
@@ -39,7 +39,7 @@ pkg.define('spectrum_tests_parser', ['litmus', 'spectrum'], function (litmus, sp
             function () {
                 parser.parse(
                     "\n" +
-                    "   <= =>\n"
+                    "   <%= %>\n"
                 );
             },
             /empty expression tag.+at line 2, character 4/,
@@ -48,12 +48,12 @@ pkg.define('spectrum_tests_parser', ['litmus', 'spectrum'], function (litmus, sp
 
         // code blocks
 
-        ast = parser.parse("<~js> any old code </~js>");
+        ast = parser.parse("<% any old code %>");
         this.is(ast.subnodes.length, 1, 'single code tag returns one node');
         this.isa(ast.subnodes[0], spectrum.ast.CodeBlock, 'got single code tag');
         this.is(ast.subnodes[0].code, ' any old code ', 'contents of code tag');
 
-        ast = parser.parse("<~js>code1</~js><~js>code2</~js>");
+        ast = parser.parse("<%code1%><%code2%>");
         this.is(ast.subnodes.length, 1, 'adjacent code tags do run together');
         this.isa(ast.subnodes[0], spectrum.ast.CodeBlock, 'ran together code tag type');
         this.is(ast.subnodes[0].code, 'code1code2', 'ran together code tag code');

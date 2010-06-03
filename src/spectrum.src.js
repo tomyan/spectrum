@@ -10,7 +10,15 @@
     // in the main parser scope. It's also to avoid having too much stuff in the scope of the
     // compiled code (hence the cryptic names)
     function _spectrumCompileTemplate (_spectrumTemplateCode) {
-        return eval(_spectrumTemplateCode);
+        var code;
+        try {
+            code = eval(_spectrumTemplateCode);
+        }
+        catch (e) {
+            var sys = require('sys');
+            sys.debug(sys.inspect(e));
+        }
+        return code;
     }
 
     pkg.define('spectrum', ['node:sys'], function (sys) {
@@ -113,7 +121,7 @@
         };
 
         ast.Content.prototype.render = function () {
-            return 'this.output(' + quote(this.text) + ');';
+            return ';this.output(' + quote(this.text) + ');';
         };
 
         ast.ExpressionTag = function (code) {
@@ -155,19 +163,18 @@
         var topLevelRule = rule{
                 ([\S\s]*?)   // content
                 (?:          // any of...
-                    (<)=          // the start of an expression tag
-                |   (<)~js>       // the start of a code block
+                    (<)%(=)?      // the start of an expression tag or code tag
                 |   (\n|^)\h*(:)  // the beginning of a code line       
                 |   $             // end of the string
                 )
             }x,
             expressionTagRule = rule{
                 ([\S\s]*?)   // the expression
-                =>           // the closing tag
+                %>           // the closing tag
             }x,
             codeBlockRule = rule{
                 ([\S\s]*?)   // the code
-                </~js>       // the closing tag            
+                %>           // the closing tag            
             }x,
             codeLineRule = rule{
                 (.*?(?:\n|$))    // the rest of the line (including trailing newline)
@@ -222,12 +229,12 @@
                             if (res[1].length > 0 || res[4] && res[4].length > 0) {
                                 stack[stack.length - 1].subnodes.push(new ast.Content(res[1] + (res[4] ? res[4] : '')));
                             }
-                            if (res[2]) { // expression tag start
-                                tokenStart = newPosition - 2;
+                            if (res[2] && res[3]) { // expression tag start
+                                tokenStart = newPosition - 3;
                                 context = expressionTagContext;
                             }
-                            else if (res[3]) { // code block start
-                                tokenStart = newPosition - 5;
+                            else if (res[2]) { // code block start
+                                tokenStart = newPosition - 2;
                                 context = codeBlockContext;
                             }
                             else if (res[5]) { // code line start
