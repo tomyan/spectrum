@@ -85,11 +85,13 @@
         };
 
         ast.Container.prototype.generateContentFunction = function () {
-            var code = 'function(){';
-            for (var i = 0, l = this.subnodes.length; i < l; i++) {
-                code += this.subnodes[i].render();
-            }
-            return code + 'return this.content();}';
+            return 'function(){' + this.renderSubnodes() + 'return this.content();}';
+        };
+
+        ast.Container.prototype.renderSubnodes = function () {
+            return this.subnodes.map(function (node) {
+                return node.render();
+            }).join('');
         };
 
         ast.Container.prototype.lastSubnode = function () {
@@ -98,7 +100,8 @@
 
         var Root = ast.Root = function () {
             arguments.callee.base.apply(this, arguments);
-            this.methods = {};
+            this.methods = [];
+            this.methodsByName = {}
         };
 
         extend(ast.Root, ast.Container);
@@ -106,10 +109,16 @@
         Root.prototype.generate = function () {
             var generated = '(function(){var viewClass=function(){arguments.callee.base.apply(this,arguments);};'
                  + 'viewClass.prototype.render=' + this.generateContentFunction('render') + ';'
-//                 + this.generateNamedMethods()
+                 + this.generateMethods()
                  + 'return viewClass;})()';
 //            sys.debug(generated);
             return generated;
+        };
+
+        Root.prototype.generateMethods = function () {
+            return this.methods.map(function (method) {
+                return method.generate();
+            }).join('');
         };
 
         Root.prototype.compile = function () {
@@ -119,7 +128,11 @@
         };
 
         Root.prototype.addMethod = function (method) {
-            this.methods[method.name] = method;
+            if (method.name in this.methodsByName) {
+                throw new ParseError('duplicate method "' + method.name + '"');
+            }
+            this.methods.push(method);
+            this.methodsByName[method.name] = method
         };
 
         ast.Method = function (parent) {
@@ -133,6 +146,16 @@
         };
 
         extend(ast.Method, ast.Container);
+
+        ast.Method.prototype.generate = function () {
+            return 'viewClass.prototype.' + this.name + '=function' + (this.argList || '()') + '{' +
+                   this.renderSubnodes() +
+                   '};';
+        };
+
+        ast.Method.prototype.render = function () {
+            return '';
+        };
 
         ast.Content = function (text) {
             this.text = text;
@@ -411,7 +434,6 @@
                     }
                     var character = tokenStart - beginningOfErrorLine;
                     character++; // make it 1 based
-                    sys.debug(e.message + " at line " + line + ", character " + character);
                     throw e.message + " at line " + line + ", character " + character;
                 }
                 else {

@@ -40,7 +40,7 @@ pkg.define('spectrum_tests_generator', ['litmus', 'spectrum'], function (litmus,
 
         testOutput(
             'method output before is: "<% this.testMethod() %>"\n' +
-            '<~method testMethod>test output</~method>\n' 
+            '<~method testMethod>test output</~method>\n' +
             'method output after is: "<% this.testMethod() %>"',
             'method output before is: "test output"\n\nmethod output after is: "test output"',
             'method calls before and after definitiion'
@@ -48,7 +48,7 @@ pkg.define('spectrum_tests_generator', ['litmus', 'spectrum'], function (litmus,
 
         testOutput(
             'method output before is: "<% this.testMethod(0, 1) %>"\n' +
-            '<~method testMethod(a, b)>test <%= a + b %></~method>\n' 
+            '<~method testMethod(a, b)>test <%= a + b %></~method>\n' +
             'method output after is: "<% this.testMethod(2, 3) %>"',
             'method output before is: "test 1"\n\nmethod output after is: "test 5"',
             'method calls before and after definitiion with argument'
