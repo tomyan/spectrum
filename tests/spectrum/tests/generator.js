@@ -1,7 +1,7 @@
 
 pkg.define('spectrum_tests_generator', ['litmus', 'spectrum'], function (litmus, spectrum) {
     return new litmus.Test('spectrum parser', function () {
-        this.plan(4);
+        this.plan(6);
 
         var parser = new spectrum.Parser();
     
@@ -36,6 +36,22 @@ pkg.define('spectrum_tests_generator', ['litmus', 'spectrum'], function (litmus,
             ': }',
             '* 0\n* 1\n* 2\n',
             'code lines'
+        );
+
+        testOutput(
+            'method output before is: "<% this.testMethod() %>"\n' +
+            '<~method testMethod>test output</~method>\n' 
+            'method output after is: "<% this.testMethod() %>"',
+            'method output before is: "test output"\n\nmethod output after is: "test output"',
+            'method calls before and after definitiion'
+        );
+
+        testOutput(
+            'method output before is: "<% this.testMethod(0, 1) %>"\n' +
+            '<~method testMethod(a, b)>test <%= a + b %></~method>\n' 
+            'method output after is: "<% this.testMethod(2, 3) %>"',
+            'method output before is: "test 1"\n\nmethod output after is: "test 5"',
+            'method calls before and after definitiion with argument'
         );
     });
 });
