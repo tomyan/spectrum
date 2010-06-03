@@ -1,7 +1,7 @@
 
 pkg.define('spectrum_tests_generator', ['litmus', 'spectrum'], function (litmus, spectrum) {
     return new litmus.Test('spectrum parser', function () {
-        this.plan(2);
+        this.plan(3);
 
         var parser = new spectrum.Parser();
     
@@ -22,6 +22,12 @@ pkg.define('spectrum_tests_generator', ['litmus', 'spectrum'], function (litmus,
             '1 + 1 = <= 1 + 1 =>!',
             '1 + 1 = 2!',
             'expression tag generates output'
+        );
+
+        testOutput(
+            '1 <~js> for (var i = 2; i < 5; i++) { </~js><= i => <~js> } </~js>5',
+            '1 2 3 4 5',
+            'block tags, with js constructs running across them'
         );
     });
 });
