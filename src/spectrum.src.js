@@ -9,11 +9,11 @@
     // this gets its own scope to stop it interfering with potential optimisation of code
     // in the main parser scope. It's also to avoid having too much stuff in the scope of the
     // compiled code (hence the cryptic names)
-    function _spectrumComipleTemplate (_spectrumTemplateCode) {
+    function _spectrumCompileTemplate (_spectrumTemplateCode) {
         return eval(_spectrumTemplateCode);
     }
 
-    pkg.define('spectrum', function () {
+    pkg.define('spectrum', ['node:sys'], function (sys) {
         var ns  = {},
             ast = ns.ast = {};
 
@@ -33,9 +33,15 @@
         */
 
         function extend (child, parent) {
-            var p = function () {};
+            var proto = child.prototype,
+                p     = function () {};
             p.prototype = parent.prototype;
             child.prototype = new p();
+            for (var i in proto) {
+                if (proto.hasOwnProperty(i)) {
+                    child.prototype[i] = proto[i];
+                }
+            }
             child.base = parent;
         }
 
@@ -48,8 +54,18 @@
         };
 
         var View = function () {
-
+            this._content = '';
         };
+
+        View.prototype.output = function () {
+            for (var i = 0, l = arguments.length; i < l; i++) {
+                this._content += arguments[i];
+            }
+        };
+
+        View.prototype.content = function () {
+            return this._content;
+        }
 
         var ParseError = function (message) {
             this.message = message;
@@ -62,9 +78,9 @@
         ast.Container.prototype.generateContentFunction = function () {
             var code = 'function(){';
             for (var i = 0, l = this.subnodes.length; i < l; i++) {
-                code += this.subnodes[i].renderContent();
+                code += this.subnodes[i].render();
             }
-            return code + '}';
+            return code + 'return this.content();}';
         };
 
         ast.Container.prototype.lastSubnode = function () {
@@ -75,20 +91,22 @@
             arguments.callee.base.apply(this, arguments);
         };
 
+        extend(ast.Root, ast.Container);
+
         Root.prototype.generate = function () {
-            return '(function(){var viewClass=function(){};'
+            var generated = '(function(){var viewClass=function(){arguments.callee.base.apply(this,arguments);};'
                  + 'viewClass.prototype.render=' + this.generateContentFunction('render') + ';'
-                 + this.generateNamedMethods()
+//                 + this.generateNamedMethods()
                  + 'return viewClass;})()';
+            sys.debug(generated);
+            return generated;
         };
 
         Root.prototype.compile = function () {
-            var templateClass = _spectrumComipleTemplate(this.generate());
+            var templateClass = _spectrumCompileTemplate(this.generate());
             extend(templateClass, View);
             return templateClass;
         };
-
-        extend(ast.Root, ast.Container);
 
         ast.Content = function (text) {
             this.text = text;

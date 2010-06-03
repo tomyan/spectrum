@@ -1,10 +1,11 @@
 
 pkg.define(
     'spectrum_tests_suite',
-    ['litmus', 'spectrum_tests_parser'],
+    ['litmus'],
     function (litmus, parser) {
         return new litmus.Suite('Spectrum Test Suite', [
-            parser
+            'spectrum_tests_parser',
+            'spectrum_tests_generator'
         ]);
     }
 );
