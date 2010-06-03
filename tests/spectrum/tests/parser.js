@@ -1,7 +1,7 @@
 
 pkg.define('spectrum_tests_parser', ['litmus', 'spectrum'], function (litmus, spectrum) {
     return new litmus.Test('spectrum parser', function () {
-        this.plan(49);
+        this.plan(56);
 
         this.ok(spectrum.Parser, 'load the spectrum parser');
 
@@ -149,5 +149,26 @@ pkg.define('spectrum_tests_parser', ['litmus', 'spectrum'], function (litmus, sp
         this.is(ast.subnodes.length, 1, 'single code line (with leading whitespace) returns one node');
 
         this.isa(ast.subnodes[0], spectrum.ast.CodeLines, 'got a code single code line (with leading whitespace)');
+
+        // method tags
+
+        ast = parser.parse("<~method myMethod>method content</~method>");
+
+        this.is(ast.subnodes.length, 1, 'method has single method node');
+
+        var methodNode = ast.subnodes[0];
+        this.isa(methodNode, spectrum.ast.Method, 'method creates method node');
+        this.is(methodNode.argumentList, undefined, 'argument list not defined when not specified');
+        this.is(methodNode.subnodes.length, 1, 'method has one subnode');
+        this.isa(methodNode.subnodes[0], spectrum.ast.Content, 'content in method is a content node');
+        this.is(methodNode.subnodes[0].text, 'method content', 'content inside method contains right content');
+
+        this.throwsOk(
+            function () {
+                parser.parse(" <~method anything>");
+            },
+            /unclosed method tag.*at line 1, character 2/,
+            'error for unclosed method tag'
+        );
     });
 });

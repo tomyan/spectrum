@@ -16,7 +16,8 @@
         }
         catch (e) {
             var sys = require('sys');
-            sys.debug(sys.inspect(e));
+            sys.debug('TODO handle this compilation error better: ' + sys.inspect(e));
+            throw e;
         }
         return code;
     }
@@ -54,7 +55,7 @@
         }
 
         function quote (str) {
-            if (typeof str == 'undefined') return 'undefined';
+            if (typeof str === 'undefined') return 'undefined';
 			// TODO optimise
 			str = str.replace(/\"/g, "\\\"");
 			str = str.replace(/\r\n|\n|\r/g, '\\n" + \n"');
@@ -97,6 +98,7 @@
 
         var Root = ast.Root = function () {
             arguments.callee.base.apply(this, arguments);
+            this.methods = {};
         };
 
         extend(ast.Root, ast.Container);
@@ -106,7 +108,7 @@
                  + 'viewClass.prototype.render=' + this.generateContentFunction('render') + ';'
 //                 + this.generateNamedMethods()
                  + 'return viewClass;})()';
-            sys.debug(generated);
+//            sys.debug(generated);
             return generated;
         };
 
@@ -115,6 +117,22 @@
             extend(templateClass, View);
             return templateClass;
         };
+
+        Root.prototype.addMethod = function (method) {
+            this.methods[method.name] = method;
+        };
+
+        ast.Method = function (parent) {
+            arguments.callee.base.apply(this, arguments);
+            this.parent = parent;
+            this.preNameWhitespace = '';
+            this.name = '';
+            this.preArgListWhitespace = '';
+            this.argList = '';
+            this.postArgListWhitespace = '';
+        };
+
+        extend(ast.Method, ast.Container);
 
         ast.Content = function (text) {
             this.text = text;
@@ -154,7 +172,8 @@
             endOfInputContext    = i++,
             expressionTagContext = i++,
             codeBlockContext     = i++,
-            codeLinesContext     = i++;
+            codeLinesContext     = i++,
+            methodContext        = i++;
         delete i;
 
         // rules - these are converted into RegExps but removing comments and whitespace, escaping forward slashes,
@@ -164,21 +183,31 @@
                 ([\S\s]*?)   // content
                 (?:          // any of...
                     (<)%(=)?      // the start of an expression tag or code tag
-                |   (\n|^)\h*(:)  // the beginning of a code line       
+                |   (\n|^)\h*(:)  // the beginning of a code line
+                |   <~(\w+)       // the beginning of a block tag
+                |   </~(\w+)>     // the end of a block tag
                 |   $             // end of the string
                 )
             }x,
             expressionTagRule = rule{
-                ([\S\s]*?)   // the expression
-                %>           // the closing tag
+                ([\S\s]*?)        // the expression
+                %>                // the closing tag
             }x,
             codeBlockRule = rule{
-                ([\S\s]*?)   // the code
-                %>           // the closing tag            
+                ([\S\s]*?)        // the code
+                %>                // the closing tag            
             }x,
             codeLineRule = rule{
-                (.*?(?:\n|$))    // the rest of the line (including trailing newline)
-                (\h*:)?     // possibly the start of another code line
+                (.*?(?:\n|$))     // the rest of the line (including trailing newline)
+                (\h*:)?           // possibly the start of another code line
+            }x,
+            methodRule = rule{
+                (\s+)(\w+)        // pre whitespace and name
+                (\s*)             // initial whitespace
+                (?:
+                    (\([^\)]*?\))     // bracketed argument list
+                )?                    // ...possibly
+                (\s*)>            // maybe some whitespace and the end of the opening <~method> tag
             }x;
 
         var Template = function () {};
@@ -211,7 +240,9 @@
                 newPosition,
                 res,
                 tokenStart = 0,
-                stack = [root];
+                stack = [root],
+                tagStack = [],
+                node;
 
             try {
                 SUCCESS: while (true) {
@@ -221,7 +252,7 @@
                         case topLevelContext:
                             topLevelRule.lastIndex = position;
                             res = topLevelRule.exec(content);
-                            if (res == null) {
+                            if (res === null) {
                                 throw new ParseError('could not match template');
                             }
                             newPosition = topLevelRule.lastIndex;
@@ -239,7 +270,24 @@
                             }
                             else if (res[5]) { // code line start
                                 tokenStart = newPosition - 1;
-                                context = codeLinesContext;                            
+                                context = codeLinesContext;                  
+                            }
+                            else if (res[6]) { // block tag start
+                                tokenStart = newPosition - (res[6].length + 2);
+                                if (res[6] === 'method') {
+                                    context = methodContext;
+                                }
+                                else {
+                                    throw new ParseError('unknown block tag <~' + res[5] + '...');
+                                }
+                            }
+                            else if (res[7]) { // block tag end
+                                tokenStart = newPosition - (res[7].length + 3);
+                                if (tagStack.length === 0 || tagStack[tagStack.length - 1] !== res[7]) {
+                                    throw new ParseError('closing </~' + res[7] + '> without corresponding opening tag');
+                                }
+                                stack.pop();
+                                tagStack.pop();
                             }
                             else {
                                 context = endOfInputContext;
@@ -251,7 +299,7 @@
                             // TODO escaping of value resulting from expression
                             expressionTagRule.lastIndex = position;
                             res = expressionTagRule.exec(content);
-                            if (res == null) {
+                            if (res === null) {
                                 throw new ParseError('cannot find end of expression tag "=>"');
                             }
                             newPosition = expressionTagRule.lastIndex;
@@ -305,12 +353,38 @@
                             context = topLevelContext;
                             break;
 
+                        case methodContext:
+                            methodRule.lastIndex = position;
+                            res = methodRule.exec(content);
+                            if (res === null) {
+                                throw new ParseError('malformed/unfinished <~method ... > start tag');
+                            }
+                            newPosition = methodRule.lastIndex;
+
+                            node = new ast.Method(stack[stack.length - 1]);
+                            node.preNameWhitespace     = res[1];
+                            node.name                  = res[2];
+                            node.preArgListWhitespace  = res[3];
+                            node.argList               = res[4];
+                            node.postArgListWhitespace = res[5];
+            
+                            root.addMethod(node);
+                            stack[stack.length - 1].subnodes.push(node);
+                            tagStack.push('method');
+                            stack.push(node);
+
+                            context = topLevelContext;
+
+                            break;
+
                         case endOfInputContext:
+                            while (stack.length > 1) {
+                                node = stack.pop;
+                                // if we have implicitly closed tags, add exceptions to this exception for them here
+                                throw new ParseError('unclosed method tag');
+                            }    
                             if (! stack.shift()) {
                                 throw new Error('no template on container stack');
-                            }
-                            if (stack.length > 0) {
-                                throw new Error('TODO error message with containers not closed');
                             }
                             break SUCCESS;
 
@@ -337,6 +411,7 @@
                     }
                     var character = tokenStart - beginningOfErrorLine;
                     character++; // make it 1 based
+                    sys.debug(e.message + " at line " + line + ", character " + character);
                     throw e.message + " at line " + line + ", character " + character;
                 }
                 else {
