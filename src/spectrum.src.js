@@ -22,7 +22,7 @@
         return code;
     }
 
-    pkg.define('spectrum', ['node:sys', 'swipe_httpclient', 'promise'], function (sys, http, promise) {
+    pkg.define('spectrum', ['swipe_httpclient', 'promise'], function (http, promise) {
         var ns  = {},
             ast = ns.ast = {};
 
@@ -62,8 +62,9 @@
             return '"' + str + '"';
         };
 
-        var View = function () {
+        var View = function (params) {
             this._content = '';
+            this.params = params;
         };
 
         View.prototype.output = function () {
@@ -200,7 +201,7 @@
             methodContext        = i++;
         delete i;
 
-        // rules - these are converted into RegExps but removing comments and whitespace, escaping forward slashes,
+        // rules - these are converted into RegExps by removing comments and whitespace, escaping forward slashes,
         // adding \h for horizontal whitespace ([ \t]) and adding the "g" modifier - see the Makefile
         // for example rule{ hello \h* }x is converted to /hello[ \t]*/g
         var topLevelRule = rule{
@@ -244,8 +245,8 @@
             this._templateClass = this._ast.compile();
         };
 
-        Template.prototype.createInstance = function () {
-            return new this._templateClass();
+        Template.prototype.createInstance = function (params) {
+            return new this._templateClass(params);
         };
 
         var Parser = ns.Parser = function () {};
