@@ -22,7 +22,7 @@
         return code;
     }
 
-    pkg.define('spectrum', ['node:sys', 'fs-promise'], function (sys, fs) {
+    pkg.define('spectrum', ['node:sys', 'swipe_httpclient', 'promise'], function (sys, http, promise) {
         var ns  = {},
             ast = ns.ast = {};
 
@@ -56,10 +56,10 @@
 
         function quote (str) {
             if (typeof str === 'undefined') return 'undefined';
-			// TODO optimise
-			str = str.replace(/\"/g, "\\\"");
-			str = str.replace(/\r\n|\n|\r/g, '\\n" + \n"');
-			return '"' + str + '"';
+            // TODO optimise
+            str = str.replace(/\"/g, "\\\"");
+            str = str.replace(/\r\n|\n|\r/g, '\\n" + \n"');
+            return '"' + str + '"';
         };
 
         var View = function () {
@@ -73,7 +73,9 @@
         };
 
         View.prototype.content = function () {
-            return this._content;
+            var content = this._content;
+            this._content = '';
+            return content;
         }
 
         var ParseError = function (message) {
@@ -111,7 +113,6 @@
                  + 'viewClass.prototype.render=' + this.generateContentFunction('render') + ';'
                  + this.generateMethods()
                  + 'return viewClass;})()';
-//            sys.debug(generated);
             return generated;
         };
 
@@ -449,9 +450,30 @@
             this.parser = new Parser();
         };
 
+        ns.Processor.prototype.templateReader = function (path) {
+            var loadedPromise = new promise.Promise(),
+                processor = this;
+            pkg.load('fs-promise').then(
+                function (fs) {
+                    fs.readFile(processor.root + path, 'utf8').then(function (content) {
+                        loadedPromise.resolve(content);
+                    },
+                    function (err) {
+                        loadedPromise.reject(new Error('could not load template: ' + err.message));
+                    }
+                );
+            }, function () {
+                var client = new http.Client();
+                client.get(processor.root + path).then(function (response) {
+                    loadedPromise.resolve(response.content());                    
+                });
+            });
+            return loadedPromise;
+        };
+
         ns.Processor.prototype.loadTemplate = function (path) {
             var parser = this.parser;
-            return fs.readFile(this.root + path).then(function (content) {
+            return this.templateReader(path).then(function (content) {
                 return parser.templateForContent(content);
             });
         };

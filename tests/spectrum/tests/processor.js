@@ -8,11 +8,16 @@ pkg.define('spectrum_tests_processor', ['litmus', 'spectrum', 'node:sys'], funct
 
         function testTemplate (path, output, message) {
             test.async(message, function (handle) {
-                processor.loadTemplate(path).then(function (template) {
-                    var view = template.createInstance();
-                    test.is(view.render(), output, message);
-                    handle.finish();
-                });
+                processor.loadTemplate(path).then(
+                    function (template) {
+                        var view = template.createInstance();
+                        test.is(view.render(), output, message);
+                        handle.finish();
+                    },
+                    function (err) {
+                        throw err;
+                    }
+                );
             });
         }
 

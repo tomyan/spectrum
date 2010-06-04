@@ -1,7 +1,7 @@
 
 pkg.define('spectrum_tests_generator', ['litmus', 'spectrum'], function (litmus, spectrum) {
     return new litmus.Test('spectrum generator', function () {
-        this.plan(6);
+        this.plan(7);
 
         var parser = new spectrum.Parser();
     
@@ -53,5 +53,14 @@ pkg.define('spectrum_tests_generator', ['litmus', 'spectrum'], function (litmus,
             'method output before is: "test 1"\n\nmethod output after is: "test 5"',
             'method calls before and after definitiion with argument'
         );
+
+        // test template forgets previous rendering
+
+        var template = parser.templateForContent('content'),
+            view     = template.createInstance();
+
+        view.render();
+        this.is(view.render(), 'content', 'second rendering only has single copy of content');
+
     });
 });
