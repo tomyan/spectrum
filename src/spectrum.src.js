@@ -21,10 +21,10 @@
         }
         return code;
     }
-
+    
     pkg.define('spectrum', ['swipe_httpclient', 'promise'], function (http, promise) {
         var ns  = {},
-            ast = ns.ast = {};
+            ast = {};
 
        /**
         * @private
@@ -445,40 +445,46 @@
 
             return root;
         };
-
-        ns.Processor = function (root) {
+        
+        var Spectrum = function (root) {
             this.root   = root;
             this.parser = new Parser();
         };
-
-        ns.Processor.prototype.templateReader = function (path) {
+        
+        Spectrum.prototype.templateReader = function (path) {
             var loadedPromise = new promise.Promise(),
                 processor = this;
             pkg.load('fs-promise').then(
                 function (fs) {
-                    fs.readFile(processor.root + path, 'utf8').then(function (content) {
-                        loadedPromise.resolve(content);
-                    },
-                    function (err) {
-                        loadedPromise.reject(new Error('could not load template: ' + err.message));
-                    }
-                );
-            }, function () {
-                var client = new http.Client();
-                client.get(processor.root + path).then(function (response) {
-                    loadedPromise.resolve(response.content());                    
-                });
-            });
+                    fs.readFile(processor.root + path, 'utf8').then(
+                        function (content) {
+                            loadedPromise.resolve(content);
+                        },
+                        function (err) {
+                            loadedPromise.reject(new Error('could not load template: ' + err.message));
+                        }
+                    );
+                },
+                function () {
+                    var client = new http.Client();
+                    client.get(processor.root + path).then(function (response) {
+                        loadedPromise.resolve(response.content());                    
+                    });
+                }
+            );
             return loadedPromise;
         };
-
-        ns.Processor.prototype.loadTemplate = function (path) {
+        
+        Spectrum.prototype.loadTemplate = function (path) {
             var parser = this.parser;
             return this.templateReader(path).then(function (content) {
                 return parser.templateForContent(content);
             });
         };
-
-        return ns;
+        
+        Spectrum.Parser = Parser;
+        Spectrum.ast = ast;
+        
+        return Spectrum;
     });
 })();
