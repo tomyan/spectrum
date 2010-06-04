@@ -24,9 +24,10 @@
     }
     
     pkg.define('spectrum', ['swipe_httpclient', 'promise'], function (http, promise) {
-        var ns  = {},
-            ast = {};
-
+        var ns    = {},
+            ast   = {};
+        
+        
        /**
         * @private
         * @function Make a constructor extend another.
@@ -41,7 +42,6 @@
         * @param {Function} parent
         *   Parent constructor.
         */
-
         function extend (child, parent) {
             var proto = child.prototype,
                 p     = function () {};
@@ -447,17 +447,50 @@
             return root;
         };
         
-        var Spectrum = function (root) {
-            this.root   = root;
+        /**
+         * @public
+         * @class
+         * @description
+         */
+        var TemplateRoot = function (sourceRoot) {
+            /**
+             * @private
+             * @description Where the templates reside
+             */
+            this.sourceRoot = sourceRoot;
+        }
+        
+        var Spectrum = function (sourceRoot) {
+            
+            /**
+             * @private
+             * @type TemplateRoot
+             * @description The default root to render with
+             */
+            this.defaultTemplateRoot = new TemplateRoot(sourceRoot);
+            
+            /**
+             * @private
+             * @description Index of template roots
+             */
+            this.roots = {};
+            this.roots[sourceRoot] = this.defaultTemplateRoot;
+            
+            /**
+             * @private
+             * @type Parser
+             * @description 
+             */
             this.parser = new Parser();
+            
         };
         
         Spectrum.prototype.templateReader = function (path) {
             var loadedPromise = new promise.Promise(),
-                processor = this;
+                self = this;
             pkg.load('fs-promise').then(
                 function (fs) {
-                    fs.readFile(processor.root + path, 'utf8').then(
+                    fs.readFile(self.defaultTemplateRoot.sourceRoot + path, 'utf8').then(
                         function (content) {
                             loadedPromise.resolve(content);
                         },
@@ -468,13 +501,15 @@
                 },
                 function () {
                     var client = new http.Client();
-                    client.get(processor.root + path).then(function (response) {
-                        loadedPromise.resolve(response.content());                    
+                    client.get(self.defaultTemplateRoot.sourceRoot + path).then(function (response) {
+                        loadedPromise.resolve(response.content());
                     });
                 }
             );
             return loadedPromise;
         };
+        
+        
         
         Spectrum.prototype.loadTemplate = function (path) {
             var parser = this.parser;
@@ -494,6 +529,7 @@
         
         Spectrum.Parser = Parser;
         Spectrum.ast = ast;
+        Spectrum.TemplateRoot = TemplateRoot;
         
         return Spectrum;
     });

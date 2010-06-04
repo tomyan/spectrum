@@ -6,7 +6,8 @@ pkg.define(
         return new litmus.Suite('Spectrum Test Suite', [
             'spectrum_tests_parser',
             'spectrum_tests_generator',
-            'spectrum_tests_processor'
+            'spectrum_tests_processor',
+            'spectrum_tests_templateroot'
         ]);
     }
 );
