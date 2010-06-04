@@ -2,3 +2,5 @@
 src/spectrum.js
 *#*
 .project
+build
+spectrum-js-*.tar.gz
