@@ -243,14 +243,14 @@
         };
 
         Template.prototype.compile = function () {
-            this._templateClass = this._ast.compile();
+            this.templateClass = this._ast.compile();
         };
 
         Template.prototype.createInstance = function (params) {
-            return new this._templateClass(params);
+            return new this.templateClass(params);
         };
 
-        var Parser = ns.Parser = function () {};
+        var Parser = function () {};
 
         Parser.prototype.templateForContent = function (content) {
             var template = new Template();
