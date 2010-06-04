@@ -2,6 +2,7 @@
  * @fileoverview This file contains the main implementation of the Spectrum JavaScript
  *               template engine.
  *
+ * @author Richard Hodgson
  * @author Thomas Yandell
  */
 
@@ -481,6 +482,15 @@
                 return parser.templateForContent(content);
             });
         };
+        
+        Spectrum.prototype.render = function (templatePath, params) {
+            return this.loadTemplate(templatePath).then(
+                function (template) {
+                    var view = template.createInstance(params);
+                    return view.render();
+                }
+            );
+        }
         
         Spectrum.Parser = Parser;
         Spectrum.ast = ast;
