@@ -1,12 +1,8 @@
 
 VERSION=dev
+BUILD=1
 TESTS=spectrum_tests_suite
 LITMUS_ROOT=ext/litmus.js
-
-release: spectrum-js-$(VERSION).tar.gz
-
-spectrum-js-$(VERSION).tar.gz: build/spectrum-js-$(VERSION)/spectrum.js build/spectrum-js-$(VERSION)/spectrum.debug.js
-	cd build && tar czf ../spectrum-js-$(VERSION).tar.gz spectrum-js-$(VERSION)
 
 src/spectrum.js: src/spectrum.src.js
 	perl -e 'undef $$/; $$_ = <STDIN>; s{rule{(.*?)}x}{$$a=$$1;$$a =~ s{//.*?$$}{}gm; $$a =~ s/\s+//gs; $$a =~ s/\\h/[ \\t]/g; $$a =~ s{/}{\\/}g; "/$$a/g"}sge; print' < src/spectrum.src.js > src/spectrum.js
@@ -20,15 +16,21 @@ ext/litmus.js/ext/pkg.js/src/pkg.js:
 	cd ext/litmus.js && \
 	make
 
-build/spectrum-js-$(VERSION):
-	mkdir -p build/spectrum-js-$(VERSION)
+BUILD/usr/share/js:
+	mkdir -p BUILD/usr/share/js
 
-build/spectrum-js-$(VERSION)/spectrum.js: build/spectrum-js-$(VERSION)/ src/spectrum.js
-	java -jar ext/yuicompressor.jar --type js src/spectrum.js > build/spectrum-js-$(VERSION)/spectrum.js
+BUILD/usr/share/js/spectrum.js: BUILD/usr/share/js src/spectrum.js
+	java -jar ext/yuicompressor.jar --type js src/spectrum.js > BUILD/usr/share/js/spectrum.js
 
-build/spectrum-js-$(VERSION)/spectrum.debug.js: build/spectrum-js-$(VERSION)/ src/spectrum.js
-	cp src/spectrum.js build/spectrum-js-$(VERSION)/spectrum.debug.js
+BUILD/usr/share/js/spectrum.debug.js: BUILD/usr/share/js src/spectrum.js
+	cp src/spectrum.js BUILD/usr/share/js/spectrum.debug.js
+
+RPMS/noarch/spectrum.js-$(VERSION)-$(BUILD).noarch.rpm: BUILD/usr/share/js/spectrum.js BUILD/usr/share/js/spectrum.debug.js
+	mkdir -p {BUILD,RPMS,SRPMS} && \
+	rpmbuild --define '_topdir $(CURDIR)' --define 'version $(VERSION)' -bb SPECS/spectrum.js.spec
+
+dist: RPMS/noarch/spectrum.js-$(VERSION)-$(BUILD).noarch.rpm
 
 clean:
-	rm -rf build spectrum-js-*
+	rm -rf BUILD RPMS filelist spectrum-js-*
 
