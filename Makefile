@@ -27,7 +27,7 @@ BUILD/usr/share/js/spectrum.debug.js: BUILD/usr/share/js src/spectrum.js
 
 RPMS/noarch/spectrum.js-$(VERSION)-$(BUILD).noarch.rpm: BUILD/usr/share/js/spectrum.js BUILD/usr/share/js/spectrum.debug.js
 	mkdir -p {BUILD,RPMS,SRPMS} && \
-	rpmbuild --define '_topdir $(CURDIR)' --define 'version $(VERSION)' -bb SPECS/spectrum.js.spec
+	rpmbuild --define '_topdir $(CURDIR)' --define 'version $(VERSION)' --define 'release $(BUILD)' -bb SPECS/spectrum.js.spec
 
 dist: RPMS/noarch/spectrum.js-$(VERSION)-$(BUILD).noarch.rpm
 
