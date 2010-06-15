@@ -1,0 +1,9 @@
+{
+    "name"             : "spectrum.js",
+    "libraryNamespace" : "spectrum",
+    "version"          : "0.1.0",
+    "description"      : "JavaScript Template Library",
+    "depends"          : {
+        "swipe.js" : [ ">=", "0.1.0" ]
+    }
+}

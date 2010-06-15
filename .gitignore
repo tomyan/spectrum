@@ -2,8 +2,3 @@
 lib/spectrum.js
 *#*
 .project
-build
-spectrum-js-*.tar.gz
-BUILD
-RPMS
-SRPMS
