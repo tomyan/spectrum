@@ -1,0 +1,10 @@
+{
+    "name"         : "spectrum",
+    "version"      : "0.1.2beta",
+    "description"  : "JavaScript Template Library",
+    "author"       : "Thomas Yandell",
+    "contributors" : [ "Richard Hodgson" ],
+    "main"         : "./lib/spectrum",
+    "engines"      : { "node": ">= 0.2.3" },
+    "depends"      : { "promised-io" : ">= 0.0.1" }
+}
