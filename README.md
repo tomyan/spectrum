@@ -1,3 +1,5 @@
+See <a href="http://use.no.de/spectrum">use.no.de/spectrum</a>.
+
 Introduction
 ============
 
