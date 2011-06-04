@@ -6,9 +6,6 @@
     "author"       : "Thomas Yandell <tom.deletethis@yandell.me.uk> (http://tomyandell.wordpress.com/)",
     "contributors" : [ "Richard Hodgson" ],
     "main"         : "./lib/spectrum",
-    "scripts"      : {
-        "preinstall" : "make"
-    },
     "engines"      : { "node": ">= 0.2.3" },
     "depends"      : { "promised-io" : ">= 0.0.1" },
     "repository" : {
