@@ -3,7 +3,7 @@
     "description"  : "JavaScript Template Library",
     "version"      : "0.3.0",
     "engines"      : [ "node >=0.2.5" ],
-    "author"       : "Thomas Yandell <tom.deletethis@yandell.me.uk> (http://tomyandell.wordpress.com/)",
+    "author"       : "Thomas Yandell <tom.deletethis@yandell.me.uk> (http://tom.yandell.me.uk/blog/)",
     "contributors" : [ "Richard Hodgson" ],
     "main"         : "./lib/spectrum",
     "engines"      : { "node": ">= 0.2.3" },
