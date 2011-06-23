@@ -1,15 +1,14 @@
 
 var litmus   = require('litmus'),
-    spectrum = require('spectrum');
+    Spectrum = require('../lib/spectrum');
 
-exports.test = new litmus.Test('spectrum parser', function () {
+exports.test = new litmus.Test('Spectrum template parser', function () {
     this.plan(56);
     
-    this.ok(Spectrum.Parser, 'load the spectrum parser');
+    var template = new Spectrum.Template();
+    this.ok(typeof template.parse == 'function', 'Template has a parse method');
     
-    var parser = new Spectrum.Parser();
-    
-    var ast = parser.parse(
+    var ast = template.parse(
         'Hello World!\n'
     );
     
@@ -20,17 +19,17 @@ exports.test = new litmus.Test('spectrum parser', function () {
     this.isa(ast.subnodes[0], Spectrum.ast.Content, 'content node type');
     this.is(ast.subnodes[0].text, 'Hello World!\n', 'text in content node');
 
-    ast = parser.parse('');
+    ast = template.parse('');
     this.is(ast.subnodes.length, 0, 'empty template generates empty ast');
 
     // expression tags
 
-    ast = parser.parse("<%= an\nexpression %>");
+    ast = template.parse("<%= an\nexpression %>");
     this.is(ast.subnodes.length, 1, 'single expression tag returns one node');
     this.isa(ast.subnodes[0], Spectrum.ast.ExpressionTag, 'got single expression tag');
     this.is(ast.subnodes[0].code, ' an\nexpression ', 'contents of expression tag');
 
-    ast = parser.parse("<%=exp1%><%=exp2%>");
+    ast = template.parse("<%=exp1%><%=exp2%>");
     this.is(ast.subnodes.length, 2, 'adjacent expression tags do not run together');
     this.isa(ast.subnodes[0], Spectrum.ast.ExpressionTag, 'first adjacent expression tag type');
     this.is(ast.subnodes[0].code, 'exp1', 'first adjacent expression tag code');
@@ -39,7 +38,7 @@ exports.test = new litmus.Test('spectrum parser', function () {
 
     this.throwsOk(
         function () {
-            parser.parse(
+            template.parse(
                 "\n" +
                 "   <%= %>\n"
             );
@@ -50,12 +49,12 @@ exports.test = new litmus.Test('spectrum parser', function () {
 
     // code blocks
 
-    ast = parser.parse("<% any old code %>");
+    ast = template.parse("<% any old code %>");
     this.is(ast.subnodes.length, 1, 'single code tag returns one node');
     this.isa(ast.subnodes[0], Spectrum.ast.CodeBlock, 'got single code tag');
     this.is(ast.subnodes[0].code, ' any old code ', 'contents of code tag');
 
-    ast = parser.parse("<%code1%><%code2%>");
+    ast = template.parse("<%code1%><%code2%>");
     this.is(ast.subnodes.length, 1, 'adjacent code tags do run together');
     this.isa(ast.subnodes[0], Spectrum.ast.CodeBlock, 'ran together code tag type');
     this.is(ast.subnodes[0].code, 'code1code2', 'ran together code tag code');
@@ -64,7 +63,7 @@ exports.test = new litmus.Test('spectrum parser', function () {
 
     // single code line
 
-    ast = parser.parse(
+    ast = template.parse(
         "some content\n" +
         ": a line of code\n" +
         "more content\n"
@@ -83,7 +82,7 @@ exports.test = new litmus.Test('spectrum parser', function () {
 
     // single code line, leading whitespace
 
-    ast = parser.parse(
+    ast = template.parse(
         "some content\n" +
         "   :a line of code\n" +
         "more content\n"
@@ -102,7 +101,7 @@ exports.test = new litmus.Test('spectrum parser', function () {
 
     // multiple consecutive code lines
 
-    ast = parser.parse(
+    ast = template.parse(
         "...\n" +
         ": a line of code\n" +
         ": that runs into another\n" +
@@ -120,7 +119,7 @@ exports.test = new litmus.Test('spectrum parser', function () {
 
     // multiple consecutive code lines with leading whitespace
 
-    ast = parser.parse(
+    ast = template.parse(
         "...\n" +
         "    :a line of code\n" +
         "  :  that runs into another\n" +
@@ -138,7 +137,7 @@ exports.test = new litmus.Test('spectrum parser', function () {
 
     // single code line at start and end of file
 
-    ast = parser.parse(": just code line");
+    ast = template.parse(": just code line");
 
     this.is(ast.subnodes.length, 1, 'single code line returns one node');
 
@@ -146,7 +145,7 @@ exports.test = new litmus.Test('spectrum parser', function () {
 
     // single code line at start and end of file, with leading whitespace
 
-    ast = parser.parse("    : just code line");
+    ast = template.parse("    : just code line");
 
     this.is(ast.subnodes.length, 1, 'single code line (with leading whitespace) returns one node');
 
@@ -154,7 +153,7 @@ exports.test = new litmus.Test('spectrum parser', function () {
 
     // method tags
 
-    ast = parser.parse("<~method myMethod>method content</~method>");
+    ast = template.parse("<~method myMethod>method content</~method>");
 
     this.is(ast.subnodes.length, 1, 'method has single method node');
 
@@ -167,7 +166,7 @@ exports.test = new litmus.Test('spectrum parser', function () {
 
     this.throwsOk(
         function () {
-            parser.parse(" <~method anything>");
+            template.parse(" <~method anything>");
         },
         /unclosed method tag.*at line 1, character 2/,
         'error for unclosed method tag'
