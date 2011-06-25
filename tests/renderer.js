@@ -4,8 +4,6 @@ var litmus   = require('litmus'),
 exports.test = new litmus.Test('Spectrum renderer', function () {
     this.plan(2);
     
-    console.log(Spectrum);
-    
     var spectrum = new Spectrum.Renderer(__dirname + '/root');
         test = this;
     
