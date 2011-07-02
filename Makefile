@@ -20,7 +20,7 @@ ext/litmus.js/ext/pkg.js/src/pkg.js:
 publish: lib/spectrum.js 
 	perl -e '`git status` =~ /working directory clean/ or die "cannot publish without clean working dir\n"' && \
 	echo current version is `perl -ne 'print /"version"\s*:\s*"(\d+\.\d+\.\d+)"/' package.json` && \
-	perl -e 'print "new version? "' && \
+	perl -e 'print "new version? \n"' && \
 	read new_version && \
 	echo $$new_version && \
 	perl -pe 's/("version"\s*:\s*\")(?:|\d+\.\d+\.\d+)(")/$$1'$$new_version'$$2/' package.json && \
