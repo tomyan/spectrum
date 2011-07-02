@@ -23,7 +23,7 @@ publish: lib/spectrum.js
 	perl -e 'print "new version? \n"' && \
 	read new_version && \
 	echo $$new_version && \
-	perl -pe 's/("version"\s*:\s*\")(?:|\d+\.\d+\.\d+)(")/$$1'$$new_version'$$2/' package.json && \
+	perl -d -pe 's/("version"\s*:\s*\")(?:|\d+\.\d+\.\d+)(")/$$1'$$new_version'$$2/' package.json && \
 	echo git commit -m 'Version for release' package.json && \
 	echo git tag v$$new_version && \
 	echo git push --tags && \
