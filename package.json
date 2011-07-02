@@ -1,13 +1,12 @@
 {
     "name"         : "spectrum",
     "description"  : "JavaScript Template Library",
-    "version"      : "0.3.0",
-    "engines"      : [ "node >=0.2.5" ],
+    "version"      : "0.4.0",
     "author"       : "Thomas Yandell <tom.deletethis@yandell.me.uk> (http://tom.yandell.me.uk/blog/)",
     "contributors" : [ "Richard Hodgson" ],
     "main"         : "./lib/spectrum",
-    "engines"      : { "node": ">= 0.2.3" },
-    "depends"      : { "promised-io" : ">= 0.0.1" },
+    "engines"      : { "node": ">= 0.4.7" },
+    "depends"      : { "promised-io" : ">= 0.2.1" },
     "repository" : {
         "type" : "git",
         "url"  : "http://github.com/tomyan/spectrum.js.git"
