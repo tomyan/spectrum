@@ -17,6 +17,16 @@ ext/litmus.js/ext/pkg.js/src/pkg.js:
 	cd ext/litmus.js && \
 	make
 
+publish: lib/spectrum.js 
+	echo current version is `perl -ne 'print /"version"\s*:\s*"(\d+\.\d+\.\d+)"/' package.json` && \
+	perl -e 'print "new version? "' && \
+	read new_version && \
+	perl -i -pe 's/("version"\s*:\s*")(?:|\d+\.\d+\.\d+)(")/$$1'$new_version'$$2/' package.json && \
+	git commit -m 'Version for release' && \
+	git tag v$$new_version && \
+	git push --tags && \
+	npm publish https://github.com/tomyan/spectrum.js/tarball/v$$new_version
+
 clean:
 	rm -f lib/spectrum.js
 
