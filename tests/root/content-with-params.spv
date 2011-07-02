@@ -1,1 +1,1 @@
-Content with "<%= this.params.aParam %>".
+Content with "<%= this.args.aParam %>".
