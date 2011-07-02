@@ -23,10 +23,10 @@ publish: lib/spectrum.js
 	perl -e 'print "new version? "' && \
 	read new_version && \
 	perl -i -pe 's/("version"\s*:\s*")(?:|\d+\.\d+\.\d+)(")/$1'$$new_version'$2/' package.json && \
-	git commit -m 'Version for release' package.json && \
-	git tag v$$new_version && \
-	git push --tags && \
-	npm publish https://github.com/tomyan/spectrum.js/tarball/v$$new_version
+	echo git commit -m 'Version for release' package.json && \
+	echo git tag v$$new_version && \
+	echo git push --tags && \
+	echo npm publish https://github.com/tomyan/spectrum.js/tarball/v$$new_version
 
 clean:
 	rm -f lib/spectrum.js
