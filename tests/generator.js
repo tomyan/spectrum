@@ -2,7 +2,7 @@ var litmus   = require('litmus'),
     Spectrum = require('../lib/spectrum');
 
 exports.test = new litmus.Test('Spectrum generator', function () {
-    this.plan(6);
+    this.plan(7);
     
     var test = this;
     function testOutput (content, expected, message) {
@@ -66,6 +66,12 @@ exports.test = new litmus.Test('Spectrum generator', function () {
         'method output after is: "<% this.testMethod(2, 3) %>"',
         'method output before is: "test 1"\n\nmethod output after is: "test 5"',
         'method calls before and after definitiion with argument'
+    );
+
+    testOutput(
+        '\\/',
+        '\\/',
+        'test that a back slash followed by a forward slash outputs that (bug)'
     );
     /*
     TODO not sure this is relevant anymore
