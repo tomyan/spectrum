@@ -8,7 +8,8 @@
     "engines"      : { "node": ">= 0.4.7" },
     "dependencies" : { "promised-io" : ">= 0.3.0" },
     "devDependencies" : {
-        "litmus" : ">= 0.6.2"
+        "litmus" : ">= 0.6.2",
+        "usenode-release": ">= 0.0.6"
     },
     "repository" : {
         "type" : "git",
