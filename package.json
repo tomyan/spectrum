@@ -1,7 +1,7 @@
 {
     "name"         : "spectrum",
     "description"  : "JavaScript Template Library",
-    "version"      : "0.4.1",
+    "version"      : "0.4.2",
     "author"       : "Thomas Yandell <tom.deletethis@yandell.me.uk> (http://tom.yandell.me.uk/blog/)",
     "contributors" : [ "Richard Hodgson <contact@rhodgson.co.uk> (http://rhodgson.co.uk) "],
     "main"         : "./lib/spectrum",
