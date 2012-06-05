@@ -19,7 +19,7 @@ exports.test = new litmus.Test('Spectrum generator', function () {
                     var view = compiledTemplate.createInstance();
                     
                     test.is(compiledTemplate.render([]), expected, message);
-                    handle.finish();
+                    handle.resolve();
                 });
                 
             });

@@ -12,7 +12,7 @@ exports.test = new litmus.Test('Spectrum renderer', function () {
             spectrum.render(path, params).then(
                 function (rendered) {
                     test.is(rendered, output, message);
-                    handle.finish();
+                    handle.resolve();
                 }
             );
         });
