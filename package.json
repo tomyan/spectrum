@@ -1,19 +1,21 @@
 {
-    "name"         : "spectrum",
-    "description"  : "JavaScript Template Library",
-    "version"      : "0.4.2",
-    "author"       : "Thomas Yandell <tom.deletethis@yandell.me.uk> (http://tom.yandell.me.uk/blog/)",
-    "contributors" : [ "Richard Hodgson <contact@rhodgson.co.uk> (http://rhodgson.co.uk) "],
-    "main"         : "./lib/spectrum",
-    "engines"      : { "node": ">= 0.4.7" },
-    "dependencies" : { "promised-io" : ">= 0.3.0" },
-    "devDependencies" : {
-        "litmus" : ">= 0.6.2",
-        "usenode-release": ">= 0.0.6"
-    },
-    "repository" : {
-        "type" : "git",
-        "url"  : "http://github.com/usenode/spectrum.js.git"
-    },
-    "homepage" : "http://use.no.de/spectrum"
+  "name": "spectrum",
+  "description": "JavaScript Template Library",
+  "version": "1.0.0",
+  "author": "Thomas Yandell <tom.deletethis@yandell.me.uk> (https://tomyandell.co/)",
+  "contributors": [
+    "Richard Hodgson <contact@rhodgson.co.uk> (http://rhodgson.co.uk) "
+  ],
+  "scripts": {
+    "test": "npm install && node_modules/.bin/mocha tests/*.js"
+  },
+  "main": "./lib/spectrum",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/spectrum/spectrum.git"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^2.5.3"
+  }
 }

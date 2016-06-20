@@ -1,7 +1,7 @@
 " Vim syntax file
 " Language:     spectrum.js
 " Maintainer:   Tom Yandell <tom+deleteme@yandell.me.uk>
-" URL:          http://use.no.de/spectrum/spectrum.vim
+" URL:          https://raw.githubusercontent.com/tomyan/spectrum/master/support/spectrum.vim
 " Last Change:  2011 March 3
 
 " For version 5.x: Clear all syntax items

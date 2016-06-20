@@ -115,8 +115,6 @@ By default, each template inherits from another template called <code>base.spv</
 Copyright
 ---------
 
-This code is an alpha quality prototype. It is not recommended for production applications.
-
 Copyright 2010 British Broadcasting Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");

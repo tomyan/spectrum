@@ -1,6 +1,0 @@
-[submodule "ext/litmus.js"]
-	path = ext/litmus.js
-	url = git://github.com/bbc-frameworks/litmus.js.git
-[submodule "ext/swipe.js"]
-	path = ext/swipe.js
-	url = git://github.com/bbc-frameworks/swipe.js.git

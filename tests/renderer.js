@@ -1,33 +1,27 @@
-var litmus   = require('litmus'),
-    Spectrum = require('../lib/spectrum');
+'use strict';
 
-exports.test = new litmus.Test('Spectrum renderer', function () {
-    this.plan(2);
+const spectrum = require('../lib/spectrum')
+const assert = require('chai').assert;
+
+describe('renderer', function () {
+    const renderer = new spectrum.Renderer(__dirname + '/root');
     
-    var spectrum = new Spectrum.Renderer(__dirname + '/root');
-        test = this;
-    
-    function testTemplate (path, params, output, message) {
-        test.async('render shortcut', function (handle) {
-            spectrum.render(path, params).then(
-                function (rendered) {
-                    test.is(rendered, output, message);
-                    handle.resolve();
-                }
-            );
-        });
+    function testTemplate (path, params, output) {
+        return function () {
+            return renderer.render(path, params).then((rendered) => {
+                assert.equal(rendered, output);
+            });
+        };
     }
-    testTemplate(
+    it('should be able to run template with simple content', testTemplate(
         '/content.spv',
         {},
-        'template containing simple content\n',
-        'run template with simple content'
-    );
+        'template containing simple content\n'
+    ));
 
-    testTemplate(
+    it('should be able to run template with view parameter', testTemplate(
         '/content-with-params.spv',
         { 'aParam' : 'hello' },
-        'Content with "hello".\n',
-        'run template with view parameter'
-    );
+        'Content with "hello".\n'
+    ));
 });
